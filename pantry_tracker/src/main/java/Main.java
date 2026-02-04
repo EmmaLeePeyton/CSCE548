@@ -1,5 +1,4 @@
 
-import java.time.LocalDate;
 import java.util.List;
 
 public class Main {
@@ -66,7 +65,7 @@ public class Main {
             System.out.println("Recipes: " + recipeDao.getAll().size());
             System.out.println("Inventory Items: " + inventoryDao.getAll().size());
             System.out.println("Prepared Meals: " + preparedMealDao.getAll().size());
-
+/*
             // -------------------- CREATE --------------------
             System.out.println("\n=== CREATE (demo records) ===");
 
@@ -237,7 +236,8 @@ public class Main {
 
             locationDao.delete(loc.getId());
             System.out.println("Deleted Location");
-
+*/
+            System.out.println("\n(CRUD demo code is currently commented out)");
             System.out.println("\nDONE");
         } catch (Exception e) {
             e.printStackTrace();
