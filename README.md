@@ -187,7 +187,7 @@ meals, and other entities.
 
 # Project Structure
 
-    CSCE548
+   CSCE548
    ├── frontend
    │   ├── app.js
    │   ├── index.html
