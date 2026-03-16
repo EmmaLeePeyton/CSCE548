@@ -187,8 +187,7 @@ meals, and other entities.
 
 # Project Structure
 
-   ```text
-   CSCE548
+    CSCE548
    ├── frontend
    │   ├── app.js
    │   ├── index.html
@@ -216,7 +215,7 @@ meals, and other entities.
    │
    ├── db_creation.sql
    └── db_insertion.sql
-```something
+
 ------------------------------------------------------------------------
 
 # Testing
