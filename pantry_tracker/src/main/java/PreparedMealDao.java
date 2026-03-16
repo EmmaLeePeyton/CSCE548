@@ -1,4 +1,9 @@
-import java.sql.*;
+import java.sql.Connection;
+import java.sql.Date;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.Statement;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,36 +30,35 @@ public class PreparedMealDao {
     }
 
     public List<PreparedMeal> getAll() throws Exception {
-        List<PreparedMeal> list = new ArrayList<>();
-        String sql = """
-            SELECT pm.prepared_meal_id, pm.name, pm.servings_total, pm.servings_remaining,
-                   pm.prep_date, pm.expiration_date, pm.note,
-                   l.location_id, l.name AS location_name
-            FROM prepared_meal pm
-            JOIN location l ON pm.location_id = l.location_id
-            ORDER BY pm.prep_date DESC, pm.name
-        """;
+        String sql = baseSelect() + " ORDER BY pm.prep_date DESC, pm.name";
         try (Connection conn = DBUtil.getConnection();
              Statement st = conn.createStatement();
              ResultSet rs = st.executeQuery(sql)) {
+            return mapPreparedMeals(rs);
+        }
+    }
 
-            while (rs.next()) {
-                Location loc = new Location(rs.getInt("location_id"), rs.getString("location_name"));
-                LocalDate exp = (rs.getDate("expiration_date") == null) ? null : rs.getDate("expiration_date").toLocalDate();
-
-                list.add(new PreparedMeal(
-                        rs.getInt("prepared_meal_id"),
-                        rs.getString("name"),
-                        loc,
-                        rs.getInt("servings_total"),
-                        rs.getInt("servings_remaining"),
-                        rs.getDate("prep_date").toLocalDate(),
-                        exp,
-                        rs.getString("note")
-                ));
+    public PreparedMeal getById(int id) throws Exception {
+        String sql = baseSelect() + " WHERE pm.prepared_meal_id = ?";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, id);
+            try (ResultSet rs = ps.executeQuery()) {
+                List<PreparedMeal> list = mapPreparedMeals(rs);
+                return list.isEmpty() ? null : list.get(0);
             }
         }
-        return list;
+    }
+
+    public List<PreparedMeal> getByLocationId(int locationId) throws Exception {
+        String sql = baseSelect() + " WHERE pm.location_id = ? ORDER BY pm.prep_date DESC, pm.name";
+        try (Connection conn = DBUtil.getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setInt(1, locationId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return mapPreparedMeals(rs);
+            }
+        }
     }
 
     public void update(PreparedMeal pm) throws Exception {
@@ -85,5 +89,35 @@ public class PreparedMealDao {
             ps.setInt(1, id);
             ps.executeUpdate();
         }
+    }
+
+    private String baseSelect() {
+        return """
+            SELECT pm.prepared_meal_id, pm.name, pm.servings_total, pm.servings_remaining,
+                   pm.prep_date, pm.expiration_date, pm.note,
+                   l.location_id, l.name AS location_name
+            FROM prepared_meal pm
+            JOIN location l ON pm.location_id = l.location_id
+        """;
+    }
+
+    private List<PreparedMeal> mapPreparedMeals(ResultSet rs) throws Exception {
+        List<PreparedMeal> list = new ArrayList<>();
+        while (rs.next()) {
+            Location loc = new Location(rs.getInt("location_id"), rs.getString("location_name"));
+            LocalDate exp = (rs.getDate("expiration_date") == null) ? null : rs.getDate("expiration_date").toLocalDate();
+
+            list.add(new PreparedMeal(
+                    rs.getInt("prepared_meal_id"),
+                    rs.getString("name"),
+                    loc,
+                    rs.getInt("servings_total"),
+                    rs.getInt("servings_remaining"),
+                    rs.getDate("prep_date").toLocalDate(),
+                    exp,
+                    rs.getString("note")
+            ));
+        }
+        return list;
     }
 }

@@ -106,3 +106,6 @@ run simple client:
 
 ```powershell terminal 2
 mvn -q exec:java "-Dexec.mainClass=PantryConsoleClient"
+
+run webpage on prefered website:
+double click on the html file in your file explorer.

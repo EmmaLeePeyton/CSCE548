@@ -1,15 +1,5 @@
 import java.util.List;
 
-/**
- * Business Layer for Project 2 (Task 1).
- *
- * Purpose:
- * - Exposes ALL CRUD methods from the Data Layer (DAOs).
- * - Services in Task 2 should call THIS layer, not DAOs directly.
- *
- * Notes:
- * - This project uses the default package (no "package ..." line), matching your current codebase.
- */
 public class PantryBusinessLayer {
 
     private final IngredientCategoryDao ingredientCategoryDao = new IngredientCategoryDao();
@@ -35,6 +25,16 @@ public class PantryBusinessLayer {
         return ingredientCategoryDao.getAll();
     }
 
+    public IngredientCategory getIngredientCategoryById(int categoryId) throws Exception {
+        requirePositive(categoryId, "categoryId must be > 0");
+        return ingredientCategoryDao.getById(categoryId);
+    }
+
+    public List<IngredientCategory> searchIngredientCategoriesByName(String name) throws Exception {
+        requireNotBlank(name, "name is required");
+        return ingredientCategoryDao.searchByName(name);
+    }
+
     public void updateIngredientCategory(IngredientCategory category) throws Exception {
         requireNotNull(category, "IngredientCategory is required");
         requirePositive(category.getId(), "IngredientCategory.id must be > 0");
@@ -52,11 +52,7 @@ public class PantryBusinessLayer {
     // -------------------------
 
     public void createIngredient(Ingredient ingredient) throws Exception {
-        requireNotNull(ingredient, "Ingredient is required");
-        requireNotBlank(ingredient.getName(), "Ingredient.name is required");
-        requireNotNull(ingredient.getCategory(), "Ingredient.category is required");
-        requirePositive(ingredient.getCategory().getId(), "Ingredient.category.id must be > 0");
-        requireNotBlank(ingredient.getDefaultUnit(), "Ingredient.defaultUnit is required");
+        validateIngredient(ingredient, false);
         ingredientDao.insert(ingredient);
     }
 
@@ -64,19 +60,38 @@ public class PantryBusinessLayer {
         return ingredientDao.getAll();
     }
 
+    public Ingredient getIngredientById(int ingredientId) throws Exception {
+        requirePositive(ingredientId, "ingredientId must be > 0");
+        return ingredientDao.getById(ingredientId);
+    }
+
+    public List<Ingredient> searchIngredientsByName(String name) throws Exception {
+        requireNotBlank(name, "name is required");
+        return ingredientDao.searchByName(name);
+    }
+
+    public List<Ingredient> getIngredientsByCategoryId(int categoryId) throws Exception {
+        requirePositive(categoryId, "categoryId must be > 0");
+        return ingredientDao.getByCategoryId(categoryId);
+    }
+
     public void updateIngredient(Ingredient ingredient) throws Exception {
-        requireNotNull(ingredient, "Ingredient is required");
-        requirePositive(ingredient.getId(), "Ingredient.id must be > 0");
-        requireNotBlank(ingredient.getName(), "Ingredient.name is required");
-        requireNotNull(ingredient.getCategory(), "Ingredient.category is required");
-        requirePositive(ingredient.getCategory().getId(), "Ingredient.category.id must be > 0");
-        requireNotBlank(ingredient.getDefaultUnit(), "Ingredient.defaultUnit is required");
+        validateIngredient(ingredient, true);
         ingredientDao.update(ingredient);
     }
 
     public void deleteIngredient(int ingredientId) throws Exception {
         requirePositive(ingredientId, "ingredientId must be > 0");
         ingredientDao.delete(ingredientId);
+    }
+
+    private static void validateIngredient(Ingredient ingredient, boolean requireId) {
+        requireNotNull(ingredient, "Ingredient is required");
+        if (requireId) requirePositive(ingredient.getId(), "Ingredient.id must be > 0");
+        requireNotBlank(ingredient.getName(), "Ingredient.name is required");
+        requireNotNull(ingredient.getCategory(), "Ingredient.category is required");
+        requirePositive(ingredient.getCategory().getId(), "Ingredient.category.id must be > 0");
+        requireNotBlank(ingredient.getDefaultUnit(), "Ingredient.defaultUnit is required");
     }
 
     // -------------------------
@@ -93,15 +108,25 @@ public class PantryBusinessLayer {
         return locationDao.getAll();
     }
 
+    public Location getLocationById(int locationId) throws Exception {
+        requirePositive(locationId, "locationId must be > 0");
+        return locationDao.getById(locationId);
+    }
+
+    public List<Location> searchLocationsByName(String name) throws Exception {
+        requireNotBlank(name, "name is required");
+        return locationDao.searchByName(name);
+    }
+
     public void updateLocation(Location location) throws Exception {
         requireNotNull(location, "Location is required");
-        requireNonNegative(location.getId(), "Location.id must be >= 0");
+        requirePositive(location.getId(), "Location.id must be > 0");
         requireNotBlank(location.getName(), "Location.name is required");
         locationDao.update(location);
     }
 
     public void deleteLocation(int locationId) throws Exception {
-        requireNonNegative(locationId, "locationId must be >= 0");
+        requirePositive(locationId, "locationId must be > 0");
         locationDao.delete(locationId);
     }
 
@@ -116,6 +141,21 @@ public class PantryBusinessLayer {
 
     public List<InventoryItem> getAllInventoryItems() throws Exception {
         return inventoryItemDao.getAll();
+    }
+
+    public InventoryItem getInventoryItemById(int inventoryItemId) throws Exception {
+        requirePositive(inventoryItemId, "inventoryItemId must be > 0");
+        return inventoryItemDao.getById(inventoryItemId);
+    }
+
+    public List<InventoryItem> getInventoryItemsByLocationId(int locationId) throws Exception {
+        requirePositive(locationId, "locationId must be > 0");
+        return inventoryItemDao.getByLocationId(locationId);
+    }
+
+    public List<InventoryItem> getInventoryItemsByIngredientId(int ingredientId) throws Exception {
+        requirePositive(ingredientId, "ingredientId must be > 0");
+        return inventoryItemDao.getByIngredientId(ingredientId);
     }
 
     public void updateInventoryItem(InventoryItem item) throws Exception {
@@ -140,7 +180,6 @@ public class PantryBusinessLayer {
 
         if (item.getQuantity() < 0) throw new ValidationException("InventoryItem.quantity must be >= 0");
         requireNotBlank(item.getUnit(), "InventoryItem.unit is required");
-        // expirationDate and note can be null (per your model comments)
     }
 
     // -------------------------
@@ -155,6 +194,16 @@ public class PantryBusinessLayer {
 
     public List<Meal> getAllMeals() throws Exception {
         return mealDao.getAll();
+    }
+
+    public Meal getMealById(int mealId) throws Exception {
+        requirePositive(mealId, "mealId must be > 0");
+        return mealDao.getById(mealId);
+    }
+
+    public List<Meal> searchMealsByName(String name) throws Exception {
+        requireNotBlank(name, "name is required");
+        return mealDao.searchByName(name);
     }
 
     public void updateMeal(Meal meal) throws Exception {
@@ -182,6 +231,16 @@ public class PantryBusinessLayer {
         return recipeDao.getAll();
     }
 
+    public Recipe getRecipeById(int recipeId) throws Exception {
+        requirePositive(recipeId, "recipeId must be > 0");
+        return recipeDao.getById(recipeId);
+    }
+
+    public List<Recipe> getRecipesByMealId(int mealId) throws Exception {
+        requirePositive(mealId, "mealId must be > 0");
+        return recipeDao.getByMealId(mealId);
+    }
+
     public void updateRecipe(Recipe recipe) throws Exception {
         validateRecipe(recipe, true);
         recipeDao.update(recipe);
@@ -195,10 +254,8 @@ public class PantryBusinessLayer {
     private static void validateRecipe(Recipe recipe, boolean requireId) {
         requireNotNull(recipe, "Recipe is required");
         if (requireId) requirePositive(recipe.getId(), "Recipe.id must be > 0");
-
         requireNotNull(recipe.getMeal(), "Recipe.meal is required");
         requirePositive(recipe.getMeal().getId(), "Recipe.meal.id must be > 0");
-
         if (recipe.getServings() <= 0) throw new ValidationException("Recipe.servings must be > 0");
         requireNotBlank(recipe.getInstructions(), "Recipe.instructions is required");
     }
@@ -214,6 +271,16 @@ public class PantryBusinessLayer {
 
     public List<PreparedMeal> getAllPreparedMeals() throws Exception {
         return preparedMealDao.getAll();
+    }
+
+    public PreparedMeal getPreparedMealById(int preparedMealId) throws Exception {
+        requirePositive(preparedMealId, "preparedMealId must be > 0");
+        return preparedMealDao.getById(preparedMealId);
+    }
+
+    public List<PreparedMeal> getPreparedMealsByLocationId(int locationId) throws Exception {
+        requirePositive(locationId, "locationId must be > 0");
+        return preparedMealDao.getByLocationId(locationId);
     }
 
     public void updatePreparedMeal(PreparedMeal pm) throws Exception {
@@ -236,11 +303,10 @@ public class PantryBusinessLayer {
 
         if (pm.getServingsTotal() <= 0) throw new ValidationException("PreparedMeal.servingsTotal must be > 0");
         if (pm.getServingsRemaining() < 0) throw new ValidationException("PreparedMeal.servingsRemaining must be >= 0");
-        if (pm.getServingsRemaining() > pm.getServingsTotal())
+        if (pm.getServingsRemaining() > pm.getServingsTotal()) {
             throw new ValidationException("PreparedMeal.servingsRemaining cannot exceed servingsTotal");
-
+        }
         if (pm.getPrepDate() == null) throw new ValidationException("PreparedMeal.prepDate is required");
-        // expirationDate and note can be null (per your model comments)
     }
 
     // -------------------------
@@ -252,9 +318,24 @@ public class PantryBusinessLayer {
         recipeIngredientDao.insert(ri);
     }
 
+    public List<RecipeIngredient> getAllRecipeIngredients() throws Exception {
+        return recipeIngredientDao.getAll();
+    }
+
     public List<RecipeIngredient> getAllRecipeIngredientsForRecipe(int recipeId) throws Exception {
         requirePositive(recipeId, "recipeId must be > 0");
         return recipeIngredientDao.getAllForRecipe(recipeId);
+    }
+
+    public List<RecipeIngredient> getAllRecipeIngredientsForIngredient(int ingredientId) throws Exception {
+        requirePositive(ingredientId, "ingredientId must be > 0");
+        return recipeIngredientDao.getAllForIngredient(ingredientId);
+    }
+
+    public RecipeIngredient getRecipeIngredientByIds(int recipeId, int ingredientId) throws Exception {
+        requirePositive(recipeId, "recipeId must be > 0");
+        requirePositive(ingredientId, "ingredientId must be > 0");
+        return recipeIngredientDao.getByIds(recipeId, ingredientId);
     }
 
     public void updateRecipeIngredient(RecipeIngredient ri) throws Exception {
@@ -274,14 +355,9 @@ public class PantryBusinessLayer {
         requirePositive(ri.getRecipe().getId(), "RecipeIngredient.recipe.id must be > 0");
         requireNotNull(ri.getIngredient(), "RecipeIngredient.ingredient is required");
         requirePositive(ri.getIngredient().getId(), "RecipeIngredient.ingredient.id must be > 0");
-
         if (ri.getAmount() <= 0) throw new ValidationException("RecipeIngredient.amount must be > 0");
         requireNotBlank(ri.getUnit(), "RecipeIngredient.unit is required");
     }
-
-    // -------------------------
-    // tiny helper validators
-    // -------------------------
 
     private static void requireNotNull(Object o, String msg) {
         if (o == null) throw new ValidationException(msg);
@@ -293,9 +369,5 @@ public class PantryBusinessLayer {
 
     private static void requirePositive(int n, String msg) {
         if (n <= 0) throw new ValidationException(msg);
-    }
-    
-    private static void requireNonNegative(int n, String msg) {
-        if (n < 0) throw new ValidationException(msg);
     }
 }

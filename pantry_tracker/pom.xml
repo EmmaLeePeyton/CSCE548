@@ -33,6 +33,12 @@
             <artifactId>jackson-databind</artifactId>
             <version>2.17.2</version>
         </dependency>
+        <!-- Java 8+ date/time support for Jackson -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.datatype</groupId>
+            <artifactId>jackson-datatype-jsr310</artifactId>
+            <version>2.17.2</version>
+        </dependency>
         <!-- Simple logging so you can see requests/errors -->
         <dependency>
             <groupId>org.slf4j</groupId>
