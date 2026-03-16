@@ -187,26 +187,35 @@ meals, and other entities.
 
 # Project Structure
 
-    pantry_tracker
-    │
-    ├── src/main/java
-    │   ├── dao
-    │   ├── business
-    │   ├── service
-    │   ├── model
-    │   └── util
-    │
-    ├── frontend
-    │   ├── index.html
-    │   ├── app.js
-    │   └── style.css
-    │
-    ├── sql
-    │   ├── db_creation.sql
-    │   └── db_insertion.sql
-    │
-    ├── README.md
-    └── pom.xml
+
+   CSCE548
+   ├── frontend
+   │   ├── app.js
+   │   ├── index.html
+   │   └── style.css
+   │
+   ├── pantry_tracker
+   │   ├── pom.xml
+   │   ├── README.md
+   │   └── src
+   │       ├── main
+   │       │   ├── java
+   │       │   │   └── org
+   │       │   │       └── example
+   │       │   │           └── pantrytracker
+   │       │   │               ├── PantryConsoleClient.java
+   │       │   │               ├── PantryServiceApi.java
+   │       │   │               ├── business
+   │       │   │               ├── dao
+   │       │   │               ├── dto
+   │       │   │               ├── exception
+   │       │   │               ├── model
+   │       │   │               └── util
+   │       │   └── resources
+   │       └── test
+   │
+   ├── db_creation.sql
+   └── db_insertion.sql
 
 ------------------------------------------------------------------------
 
