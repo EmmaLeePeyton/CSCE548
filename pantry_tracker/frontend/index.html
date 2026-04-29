@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Pantry Tracker Client</title>
+    <title>Pantry Tracker</title>
     <link rel="stylesheet" href="style.css" />
 </head>
 <body>
     <header class="topbar">
         <div>
-            <h1>Pantry Tracker Client</h1>
-            <p>Project 3 Web Frontend</p>
+            <h1>Pantry Tracker</h1>
         </div>
     </header>
 
@@ -27,24 +26,18 @@
         </aside>
 
         <main class="content">
+
+            <!-- LOCATIONS -->
             <section id="locations" class="panel active-panel">
                 <h2>Locations</h2>
-
                 <div class="group">
                     <h3>Read</h3>
                     <button onclick="getAllLocations()">Get All Locations</button>
-
-                    <div class="inline-form">
-                        <input id="locationIdInput" type="number" placeholder="Location ID" />
-                        <button onclick="getLocationById()">Get Location By ID</button>
-                    </div>
-
                     <div class="inline-form">
                         <input id="locationSearchInput" type="text" placeholder="Search name" />
                         <button onclick="searchLocations()">Search Locations</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Create</h3>
                     <div class="inline-form">
@@ -52,43 +45,34 @@
                         <button onclick="createLocation()">Create Location</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Update</h3>
                     <div class="inline-form">
-                        <input id="updateLocationId" type="number" placeholder="Location ID" />
-                        <input id="updateLocationName" type="text" placeholder="Updated name" />
+                        <select id="updateLocationSelect"><option value="">— Select location —</option></select>
+                        <input id="updateLocationName" type="text" placeholder="New name" />
                         <button onclick="updateLocation()">Update Location</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Delete</h3>
                     <div class="inline-form">
-                        <input id="deleteLocationId" type="number" placeholder="Location ID" />
+                        <select id="deleteLocationSelect"><option value="">— Select location —</option></select>
                         <button onclick="deleteLocation()">Delete Location</button>
                     </div>
                 </div>
             </section>
 
+            <!-- CATEGORIES -->
             <section id="categories" class="panel">
                 <h2>Categories</h2>
-
                 <div class="group">
                     <h3>Read</h3>
                     <button onclick="getAllCategories()">Get All Categories</button>
-
-                    <div class="inline-form">
-                        <input id="categoryIdInput" type="number" placeholder="Category ID" />
-                        <button onclick="getCategoryById()">Get Category By ID</button>
-                    </div>
-
                     <div class="inline-form">
                         <input id="categorySearchInput" type="text" placeholder="Search name" />
                         <button onclick="searchCategories()">Search Categories</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Create</h3>
                     <div class="inline-form">
@@ -96,106 +80,86 @@
                         <button onclick="createCategory()">Create Category</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Update</h3>
                     <div class="inline-form">
-                        <input id="updateCategoryId" type="number" placeholder="Category ID" />
-                        <input id="updateCategoryName" type="text" placeholder="Updated name" />
+                        <select id="updateCategorySelect"><option value="">— Select category —</option></select>
+                        <input id="updateCategoryName" type="text" placeholder="New name" />
                         <button onclick="updateCategory()">Update Category</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Delete</h3>
                     <div class="inline-form">
-                        <input id="deleteCategoryId" type="number" placeholder="Category ID" />
+                        <select id="deleteCategorySelect"><option value="">— Select category —</option></select>
                         <button onclick="deleteCategory()">Delete Category</button>
                     </div>
                 </div>
             </section>
 
+            <!-- INGREDIENTS -->
             <section id="ingredients" class="panel">
                 <h2>Ingredients</h2>
-
                 <div class="group">
                     <h3>Read</h3>
                     <button onclick="getAllIngredients()">Get All Ingredients</button>
-
-                    <div class="inline-form">
-                        <input id="ingredientIdInput" type="number" placeholder="Ingredient ID" />
-                        <button onclick="getIngredientById()">Get Ingredient By ID</button>
-                    </div>
-
                     <div class="inline-form">
                         <input id="ingredientSearchInput" type="text" placeholder="Search name" />
                         <button onclick="searchIngredients()">Search Ingredients</button>
                     </div>
-
                     <div class="inline-form">
-                        <input id="ingredientCategoryIdInput" type="number" placeholder="Category ID" />
+                        <select id="ingredientByCategorySelect"><option value="">— Select category —</option></select>
                         <button onclick="getIngredientsByCategory()">Get Ingredients By Category</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Create</h3>
                     <div class="inline-form">
                         <input id="newIngredientName" type="text" placeholder="Ingredient name" />
-                        <input id="newIngredientCategoryId" type="number" placeholder="Category ID" />
+                        <select id="newIngredientCategorySelect"><option value="">— Select category —</option></select>
                         <input id="newIngredientUnit" type="text" placeholder="Default unit" />
                         <button onclick="createIngredient()">Create Ingredient</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Update</h3>
                     <div class="inline-form">
-                        <input id="updateIngredientId" type="number" placeholder="Ingredient ID" />
-                        <input id="updateIngredientName" type="text" placeholder="Updated name" />
-                        <input id="updateIngredientCategoryId" type="number" placeholder="Category ID" />
+                        <select id="updateIngredientSelect"><option value="">— Select ingredient —</option></select>
+                        <input id="updateIngredientName" type="text" placeholder="New name" />
+                        <select id="updateIngredientCategorySelect"><option value="">— Select category —</option></select>
                         <input id="updateIngredientUnit" type="text" placeholder="Default unit" />
                         <button onclick="updateIngredient()">Update Ingredient</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Delete</h3>
                     <div class="inline-form">
-                        <input id="deleteIngredientId" type="number" placeholder="Ingredient ID" />
+                        <select id="deleteIngredientSelect"><option value="">— Select ingredient —</option></select>
                         <button onclick="deleteIngredient()">Delete Ingredient</button>
                     </div>
                 </div>
             </section>
 
+            <!-- INVENTORY -->
             <section id="inventory" class="panel">
                 <h2>Inventory</h2>
-
                 <div class="group">
                     <h3>Read</h3>
                     <button onclick="getAllInventory()">Get All Inventory</button>
-
                     <div class="inline-form">
-                        <input id="inventoryIdInput" type="number" placeholder="Inventory ID" />
-                        <button onclick="getInventoryById()">Get Inventory By ID</button>
-                    </div>
-
-                    <div class="inline-form">
-                        <input id="inventoryLocationIdInput" type="number" placeholder="Location ID" />
+                        <select id="inventoryByLocationSelect"><option value="">— Select location —</option></select>
                         <button onclick="getInventoryByLocation()">Get Inventory By Location</button>
                     </div>
-
                     <div class="inline-form">
-                        <input id="inventoryIngredientIdInput" type="number" placeholder="Ingredient ID" />
+                        <select id="inventoryByIngredientSelect"><option value="">— Select ingredient —</option></select>
                         <button onclick="getInventoryByIngredient()">Get Inventory By Ingredient</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Create</h3>
                     <div class="inline-form">
-                        <input id="newInventoryIngredientId" type="number" placeholder="Ingredient ID" />
-                        <input id="newInventoryLocationId" type="number" placeholder="Location ID" />
+                        <select id="newInventoryIngredientSelect"><option value="">— Select ingredient —</option></select>
+                        <select id="newInventoryLocationSelect"><option value="">— Select location —</option></select>
                         <input id="newInventoryQuantity" type="number" step="0.01" placeholder="Quantity" />
                         <input id="newInventoryUnit" type="text" placeholder="Unit" />
                         <input id="newInventoryExpirationDate" type="date" />
@@ -203,13 +167,12 @@
                         <button onclick="createInventory()">Create Inventory Item</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Update</h3>
                     <div class="inline-form">
-                        <input id="updateInventoryId" type="number" placeholder="Inventory ID" />
-                        <input id="updateInventoryIngredientId" type="number" placeholder="Ingredient ID" />
-                        <input id="updateInventoryLocationId" type="number" placeholder="Location ID" />
+                        <select id="updateInventorySelect"><option value="">— Select inventory item —</option></select>
+                        <select id="updateInventoryIngredientSelect"><option value="">— Select ingredient —</option></select>
+                        <select id="updateInventoryLocationSelect"><option value="">— Select location —</option></select>
                         <input id="updateInventoryQuantity" type="number" step="0.01" placeholder="Quantity" />
                         <input id="updateInventoryUnit" type="text" placeholder="Unit" />
                         <input id="updateInventoryExpirationDate" type="date" />
@@ -217,34 +180,26 @@
                         <button onclick="updateInventory()">Update Inventory Item</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Delete</h3>
                     <div class="inline-form">
-                        <input id="deleteInventoryId" type="number" placeholder="Inventory ID" />
+                        <select id="deleteInventorySelect"><option value="">— Select inventory item —</option></select>
                         <button onclick="deleteInventory()">Delete Inventory Item</button>
                     </div>
                 </div>
             </section>
 
+            <!-- MEALS -->
             <section id="meals" class="panel">
                 <h2>Meals</h2>
-
                 <div class="group">
                     <h3>Read</h3>
                     <button onclick="getAllMeals()">Get All Meals</button>
-
-                    <div class="inline-form">
-                        <input id="mealIdInput" type="number" placeholder="Meal ID" />
-                        <button onclick="getMealById()">Get Meal By ID</button>
-                    </div>
-
                     <div class="inline-form">
                         <input id="mealSearchInput" type="text" placeholder="Search name" />
                         <button onclick="searchMeals()">Search Meals</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Create</h3>
                     <div class="inline-form">
@@ -252,96 +207,78 @@
                         <button onclick="createMeal()">Create Meal</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Update</h3>
                     <div class="inline-form">
-                        <input id="updateMealId" type="number" placeholder="Meal ID" />
-                        <input id="updateMealName" type="text" placeholder="Updated name" />
+                        <select id="updateMealSelect"><option value="">— Select meal —</option></select>
+                        <input id="updateMealName" type="text" placeholder="New name" />
                         <button onclick="updateMeal()">Update Meal</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Delete</h3>
                     <div class="inline-form">
-                        <input id="deleteMealId" type="number" placeholder="Meal ID" />
+                        <select id="deleteMealSelect"><option value="">— Select meal —</option></select>
                         <button onclick="deleteMeal()">Delete Meal</button>
                     </div>
                 </div>
             </section>
 
+            <!-- RECIPES -->
             <section id="recipes" class="panel">
                 <h2>Recipes</h2>
-
                 <div class="group">
                     <h3>Read</h3>
                     <button onclick="getAllRecipes()">Get All Recipes</button>
-
                     <div class="inline-form">
-                        <input id="recipeIdInput" type="number" placeholder="Recipe ID" />
-                        <button onclick="getRecipeById()">Get Recipe By ID</button>
-                    </div>
-
-                    <div class="inline-form">
-                        <input id="recipeMealIdInput" type="number" placeholder="Meal ID" />
-                        <button onclick="getRecipesByMeal()">Get Recipes By Meal</button>
+                        <select id="recipeByMealSelect"><option value="">— Select meal —</option></select>
+                        <button onclick="getRecipesByMeal()">Get Recipe By Meal</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Create</h3>
                     <div class="inline-form">
-                        <input id="newRecipeMealId" type="number" placeholder="Meal ID" />
+                        <select id="newRecipeMealSelect"><option value="">— Select meal —</option></select>
                         <input id="newRecipeServings" type="number" placeholder="Servings" />
                         <input id="newRecipeInstructions" type="text" placeholder="Instructions" />
                         <button onclick="createRecipe()">Create Recipe</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Update</h3>
                     <div class="inline-form">
-                        <input id="updateRecipeId" type="number" placeholder="Recipe ID" />
-                        <input id="updateRecipeMealId" type="number" placeholder="Meal ID" />
+                        <select id="updateRecipeSelect"><option value="">— Select recipe —</option></select>
+                        <select id="updateRecipeMealSelect"><option value="">— Select meal —</option></select>
                         <input id="updateRecipeServings" type="number" placeholder="Servings" />
                         <input id="updateRecipeInstructions" type="text" placeholder="Instructions" />
                         <button onclick="updateRecipe()">Update Recipe</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Delete</h3>
                     <div class="inline-form">
-                        <input id="deleteRecipeId" type="number" placeholder="Recipe ID" />
+                        <select id="deleteRecipeSelect"><option value="">— Select recipe —</option></select>
                         <button onclick="deleteRecipe()">Delete Recipe</button>
                     </div>
                 </div>
             </section>
 
+            <!-- PREPARED MEALS -->
             <section id="preparedMeals" class="panel">
                 <h2>Prepared Meals</h2>
-
                 <div class="group">
                     <h3>Read</h3>
                     <button onclick="getAllPreparedMeals()">Get All Prepared Meals</button>
-
                     <div class="inline-form">
-                        <input id="preparedMealIdInput" type="number" placeholder="Prepared Meal ID" />
-                        <button onclick="getPreparedMealById()">Get Prepared Meal By ID</button>
-                    </div>
-
-                    <div class="inline-form">
-                        <input id="preparedMealLocationIdInput" type="number" placeholder="Location ID" />
+                        <select id="preparedMealByLocationSelect"><option value="">— Select location —</option></select>
                         <button onclick="getPreparedMealsByLocation()">Get Prepared Meals By Location</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Create</h3>
                     <div class="inline-form">
                         <input id="newPreparedMealName" type="text" placeholder="Name" />
-                        <input id="newPreparedMealLocationId" type="number" placeholder="Location ID" />
+                        <select id="newPreparedMealLocationSelect"><option value="">— Select location —</option></select>
                         <input id="newPreparedMealServingsTotal" type="number" placeholder="Servings total" />
                         <input id="newPreparedMealServingsRemaining" type="number" placeholder="Servings remaining" />
                         <input id="newPreparedMealPrepDate" type="date" />
@@ -350,13 +287,12 @@
                         <button onclick="createPreparedMeal()">Create Prepared Meal</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Update</h3>
                     <div class="inline-form">
-                        <input id="updatePreparedMealId" type="number" placeholder="Prepared Meal ID" />
+                        <select id="updatePreparedMealSelect"><option value="">— Select prepared meal —</option></select>
                         <input id="updatePreparedMealName" type="text" placeholder="Name" />
-                        <input id="updatePreparedMealLocationId" type="number" placeholder="Location ID" />
+                        <select id="updatePreparedMealLocationSelect"><option value="">— Select location —</option></select>
                         <input id="updatePreparedMealServingsTotal" type="number" placeholder="Servings total" />
                         <input id="updatePreparedMealServingsRemaining" type="number" placeholder="Servings remaining" />
                         <input id="updatePreparedMealPrepDate" type="date" />
@@ -365,67 +301,53 @@
                         <button onclick="updatePreparedMeal()">Update Prepared Meal</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Delete</h3>
                     <div class="inline-form">
-                        <input id="deletePreparedMealId" type="number" placeholder="Prepared Meal ID" />
+                        <select id="deletePreparedMealSelect"><option value="">— Select prepared meal —</option></select>
                         <button onclick="deletePreparedMeal()">Delete Prepared Meal</button>
                     </div>
                 </div>
             </section>
 
+            <!-- RECIPE INGREDIENTS -->
             <section id="recipeIngredients" class="panel">
                 <h2>Recipe Ingredients</h2>
-
                 <div class="group">
                     <h3>Read</h3>
                     <button onclick="getAllRecipeIngredients()">Get All Recipe Ingredients</button>
-
                     <div class="inline-form">
-                        <input id="recipeIngredientRecipeIdInput" type="number" placeholder="Recipe ID" />
+                        <select id="riByRecipeSelect"><option value="">— Select recipe —</option></select>
                         <button onclick="getRecipeIngredientsByRecipe()">Get By Recipe</button>
                     </div>
-
                     <div class="inline-form">
-                        <input id="recipeIngredientIngredientIdInput" type="number" placeholder="Ingredient ID" />
+                        <select id="riByIngredientSelect"><option value="">— Select ingredient —</option></select>
                         <button onclick="getRecipeIngredientsByIngredient()">Get By Ingredient</button>
                     </div>
-
-                    <div class="inline-form">
-                        <input id="recipeIngredientRecipeIdSingle" type="number" placeholder="Recipe ID" />
-                        <input id="recipeIngredientIngredientIdSingle" type="number" placeholder="Ingredient ID" />
-                        <button onclick="getRecipeIngredientByIds()">Get Single Recipe Ingredient</button>
-                    </div>
                 </div>
-
                 <div class="group">
                     <h3>Create</h3>
                     <div class="inline-form">
-                        <input id="newRecipeIngredientRecipeId" type="number" placeholder="Recipe ID" />
-                        <input id="newRecipeIngredientIngredientId" type="number" placeholder="Ingredient ID" />
+                        <select id="newRiRecipeSelect"><option value="">— Select recipe —</option></select>
+                        <select id="newRiIngredientSelect"><option value="">— Select ingredient —</option></select>
                         <input id="newRecipeIngredientAmount" type="number" step="0.01" placeholder="Amount" />
                         <input id="newRecipeIngredientUnit" type="text" placeholder="Unit" />
                         <button onclick="createRecipeIngredient()">Create Recipe Ingredient</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Update</h3>
                     <div class="inline-form">
-                        <input id="updateRecipeIngredientRecipeId" type="number" placeholder="Recipe ID" />
-                        <input id="updateRecipeIngredientIngredientId" type="number" placeholder="Ingredient ID" />
-                        <input id="updateRecipeIngredientAmount" type="number" step="0.01" placeholder="Amount" />
-                        <input id="updateRecipeIngredientUnit" type="text" placeholder="Unit" />
+                        <select id="updateRiSelect"><option value="">— Select recipe ingredient —</option></select>
+                        <input id="updateRecipeIngredientAmount" type="number" step="0.01" placeholder="New amount" />
+                        <input id="updateRecipeIngredientUnit" type="text" placeholder="New unit" />
                         <button onclick="updateRecipeIngredient()">Update Recipe Ingredient</button>
                     </div>
                 </div>
-
                 <div class="group">
                     <h3>Delete</h3>
                     <div class="inline-form">
-                        <input id="deleteRecipeIngredientRecipeId" type="number" placeholder="Recipe ID" />
-                        <input id="deleteRecipeIngredientIngredientId" type="number" placeholder="Ingredient ID" />
+                        <select id="deleteRiSelect"><option value="">— Select recipe ingredient —</option></select>
                         <button onclick="deleteRecipeIngredient()">Delete Recipe Ingredient</button>
                     </div>
                 </div>
@@ -433,8 +355,9 @@
 
             <section class="panel results-panel">
                 <h2>Results</h2>
-                <pre id="results">Results will appear here...</pre>
+                <div id="results"><p class="result-empty">Results will appear here.</p></div>
             </section>
+
         </main>
     </div>
 

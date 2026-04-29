@@ -1,666 +1,519 @@
 const BASE_URL = "http://localhost:7070";
 
-function showSection(sectionId, clickedButton) {
-    document.querySelectorAll(".panel").forEach(panel => {
-        panel.classList.remove("active-panel");
-    });
+// ── Human-readable field labels ──────────────────────────────────────────────
+const LABELS = {
+    id:                 "ID",
+    name:               "Name",
+    category:           "Category",
+    defaultUnit:        "Default Unit",
+    ingredient:         "Ingredient",
+    location:           "Location",
+    quantity:           "Quantity",
+    unit:               "Unit",
+    expirationDate:     "Expiration Date",
+    note:               "Notes",
+    meal:               "Meal",
+    servings:           "Servings",
+    instructions:       "Instructions",
+    recipe:             "Recipe",
+    amount:             "Amount",
+    prepDate:           "Prep Date",
+    servingsTotal:      "Total Servings",
+    servingsRemaining:  "Servings Remaining",
+};
 
-    document.querySelectorAll(".nav-btn").forEach(btn => {
-        btn.classList.remove("active");
-    });
+function labelFor(key) {
+    return LABELS[key] || key.replace(/([A-Z])/g, " $1")
+                              .replace(/^./, s => s.toUpperCase());
+}
 
-    document.getElementById(sectionId).classList.add("active-panel");
-    clickedButton.classList.add("active");
+function formatValue(val) {
+    if (val === null || val === undefined || val === "") return "—";
+    if (typeof val === "object" && !Array.isArray(val)) {
+        return val.name != null ? val.name : (val.id != null ? `ID ${val.id}` : "—");
+    }
+    if (typeof val === "string" && /^\d{4}-\d{2}-\d{2}$/.test(val)) {
+        return new Date(val + "T00:00:00").toLocaleDateString("en-US",
+            { year: "numeric", month: "long", day: "numeric" });
+    }
+    return String(val);
 }
 
 function showResults(data) {
-    document.getElementById("results").textContent = JSON.stringify(data, null, 2);
+    const container = document.getElementById("results");
+
+    if (data && data.message) {
+        container.innerHTML =
+            `<div class="result-success">&#10003;&nbsp; ${data.message}</div>`;
+        return;
+    }
+
+    if (Array.isArray(data)) {
+        if (data.length === 0) {
+            container.innerHTML = `<p class="result-empty">No records found.</p>`;
+            return;
+        }
+        const keys  = Object.keys(data[0]).filter(k => k !== "id");
+        const thead = keys.map(k => `<th>${labelFor(k)}</th>`).join("");
+        const tbody = data.map(row =>
+            `<tr>${keys.map(k => `<td>${formatValue(row[k])}</td>`).join("")}</tr>`
+        ).join("");
+        container.innerHTML =
+            `<table class="result-table">
+               <thead><tr>${thead}</tr></thead>
+               <tbody>${tbody}</tbody>
+             </table>`;
+        return;
+    }
+
+    if (typeof data === "object") {
+        const rows = Object.entries(data)
+            .filter(([k]) => k !== "id")
+            .map(([k, v]) =>
+                `<tr><th>${labelFor(k)}</th><td>${formatValue(v)}</td></tr>`)
+            .join("");
+        container.innerHTML =
+            `<table class="result-detail"><tbody>${rows}</tbody></table>`;
+        return;
+    }
+
+    container.textContent = String(data);
 }
 
 function showError(error) {
-    document.getElementById("results").textContent =
-        "ERROR:\n" + (error?.message || JSON.stringify(error, null, 2));
+    document.getElementById("results").innerHTML =
+        `<div class="result-error">&#9888;&nbsp; ${error?.message || "An error occurred."}</div>`;
 }
 
-function value(id) {
-    return document.getElementById(id).value;
+// ── Core helpers ─────────────────────────────────────────────────────────────
+
+function showSection(sectionId, clickedButton) {
+    document.querySelectorAll(".panel").forEach(p => p.classList.remove("active-panel"));
+    document.querySelectorAll(".nav-btn").forEach(b => b.classList.remove("active"));
+    document.getElementById(sectionId).classList.add("active-panel");
+    clickedButton.classList.add("active");
+    refreshSectionSelects(sectionId);
 }
 
-function numberValue(id) {
-    return Number(document.getElementById(id).value);
-}
-
-function optionalDateValue(id) {
-    const v = document.getElementById(id).value;
-    return v === "" ? null : v;
-}
+function value(id) { return document.getElementById(id).value; }
+function numVal(id) { return Number(document.getElementById(id).value); }
+function optDate(id) { const v = value(id); return v === "" ? null : v; }
 
 async function request(path, options = {}) {
     const response = await fetch(`${BASE_URL}${path}`, {
-        headers: {
-            "Content-Type": "application/json"
-        },
+        headers: { "Content-Type": "application/json" },
         ...options
     });
-
-    if (response.status === 204) {
-        return { message: "Operation completed successfully (204 No Content)" };
-    }
-
+    if (response.status === 204) return { message: "Record deleted successfully." };
     const text = await response.text();
     let data;
-
-    try {
-        data = text ? JSON.parse(text) : {};
-    } catch {
-        data = { raw: text };
-    }
-
-    if (!response.ok) {
-        throw new Error(data.error || `HTTP ${response.status}`);
-    }
-
+    try { data = text ? JSON.parse(text) : {}; }
+    catch { data = { raw: text }; }
+    if (!response.ok) throw new Error(data.error || `HTTP ${response.status}`);
     return data;
 }
 
-/* =========================
-   LOCATIONS
-========================= */
+// ── Select population ─────────────────────────────────────────────────────────
+
+async function fillSelect(selectId, url, labelFn, valueFn = item => item.id) {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    try {
+        const items = await request(url);
+        sel.innerHTML = `<option value="">— Select —</option>` +
+            items.map(item =>
+                `<option value="${valueFn(item)}">${labelFn(item)}</option>`
+            ).join("");
+    } catch {
+        sel.innerHTML = `<option value="">Error loading</option>`;
+    }
+}
+
+function fillLocations(...ids) {
+    ids.forEach(id => fillSelect(id, "/locations", i => i.name));
+}
+function fillCategories(...ids) {
+    ids.forEach(id => fillSelect(id, "/categories", i => i.name));
+}
+function fillIngredients(...ids) {
+    ids.forEach(id => fillSelect(id, "/ingredients", i => i.name));
+}
+function fillMeals(...ids) {
+    ids.forEach(id => fillSelect(id, "/meals", i => i.name));
+}
+function fillRecipes(...ids) {
+    ids.forEach(id => fillSelect(id, "/recipes",
+        i => i.meal?.name ? `${i.meal.name} (${i.servings} servings)` : `Recipe ${i.id}`
+    ));
+}
+function fillInventory(...ids) {
+    ids.forEach(id => fillSelect(id, "/inventory",
+        i => `${i.ingredient?.name || "?"} — ${i.location?.name || "?"} (${i.quantity} ${i.unit})`
+    ));
+}
+function fillPreparedMeals(...ids) {
+    ids.forEach(id => fillSelect(id, "/prepared-meals", i => i.name));
+}
+function fillRecipeIngredients(...ids) {
+    ids.forEach(id => fillSelect(id, "/recipe-ingredients",
+        i => `${i.ingredient?.name || "?"} for ${i.recipe?.meal?.name || "recipe"}`,
+        i => `${i.recipe?.id}_${i.ingredient?.id}`
+    ));
+}
+
+function refreshSectionSelects(sectionId) {
+    switch (sectionId) {
+        case "locations":
+            fillLocations("updateLocationSelect", "deleteLocationSelect");
+            break;
+        case "categories":
+            fillCategories("updateCategorySelect", "deleteCategorySelect");
+            break;
+        case "ingredients":
+            fillCategories("ingredientByCategorySelect", "newIngredientCategorySelect",
+                           "updateIngredientCategorySelect");
+            fillIngredients("updateIngredientSelect", "deleteIngredientSelect");
+            break;
+        case "inventory":
+            fillLocations("inventoryByLocationSelect", "newInventoryLocationSelect",
+                          "updateInventoryLocationSelect");
+            fillIngredients("inventoryByIngredientSelect", "newInventoryIngredientSelect",
+                            "updateInventoryIngredientSelect");
+            fillInventory("updateInventorySelect", "deleteInventorySelect");
+            break;
+        case "meals":
+            fillMeals("updateMealSelect", "deleteMealSelect");
+            break;
+        case "recipes":
+            fillMeals("recipeByMealSelect", "newRecipeMealSelect", "updateRecipeMealSelect");
+            fillRecipes("updateRecipeSelect", "deleteRecipeSelect");
+            break;
+        case "preparedMeals":
+            fillLocations("preparedMealByLocationSelect", "newPreparedMealLocationSelect",
+                          "updatePreparedMealLocationSelect");
+            fillPreparedMeals("updatePreparedMealSelect", "deletePreparedMealSelect");
+            break;
+        case "recipeIngredients":
+            fillRecipes("riByRecipeSelect", "newRiRecipeSelect");
+            fillIngredients("riByIngredientSelect", "newRiIngredientSelect");
+            fillRecipeIngredients("updateRiSelect", "deleteRiSelect");
+            break;
+    }
+}
+
+// ── LOCATIONS ────────────────────────────────────────────────────────────────
 
 async function getAllLocations() {
-    try {
-        showResults(await request("/locations"));
-    } catch (error) {
-        showError(error);
-    }
+    try { showResults(await request("/locations")); }
+    catch (e) { showError(e); }
 }
-
-async function getLocationById() {
-    try {
-        showResults(await request(`/locations/${value("locationIdInput")}`));
-    } catch (error) {
-        showError(error);
-    }
-}
-
 async function searchLocations() {
-    try {
-        showResults(await request(`/locations/search?name=${encodeURIComponent(value("locationSearchInput"))}`));
-    } catch (error) {
-        showError(error);
-    }
+    try { showResults(await request(`/locations/search?name=${encodeURIComponent(value("locationSearchInput"))}`)); }
+    catch (e) { showError(e); }
 }
-
 async function createLocation() {
     try {
-        const body = { name: value("newLocationName") };
-        showResults(await request("/locations", {
-            method: "POST",
-            body: JSON.stringify(body)
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request("/locations", { method: "POST", body: JSON.stringify({ name: value("newLocationName") }) }));
+        fillLocations("updateLocationSelect", "deleteLocationSelect");
+    } catch (e) { showError(e); }
 }
-
 async function updateLocation() {
     try {
-        const body = {
-            id: numberValue("updateLocationId"),
-            name: value("updateLocationName")
-        };
-
-        showResults(await request("/locations", {
-            method: "PUT",
-            body: JSON.stringify(body)
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request("/locations", { method: "PUT",
+            body: JSON.stringify({ id: numVal("updateLocationSelect"), name: value("updateLocationName") }) }));
+        fillLocations("updateLocationSelect", "deleteLocationSelect");
+    } catch (e) { showError(e); }
 }
-
 async function deleteLocation() {
     try {
-        showResults(await request(`/locations/${value("deleteLocationId")}`, {
-            method: "DELETE"
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request(`/locations/${value("deleteLocationSelect")}`, { method: "DELETE" }));
+        fillLocations("updateLocationSelect", "deleteLocationSelect");
+    } catch (e) { showError(e); }
 }
 
-/* =========================
-   CATEGORIES
-========================= */
+// ── CATEGORIES ───────────────────────────────────────────────────────────────
 
 async function getAllCategories() {
-    try {
-        showResults(await request("/categories"));
-    } catch (error) {
-        showError(error);
-    }
+    try { showResults(await request("/categories")); }
+    catch (e) { showError(e); }
 }
-
-async function getCategoryById() {
-    try {
-        showResults(await request(`/categories/${value("categoryIdInput")}`));
-    } catch (error) {
-        showError(error);
-    }
-}
-
 async function searchCategories() {
-    try {
-        showResults(await request(`/categories/search?name=${encodeURIComponent(value("categorySearchInput"))}`));
-    } catch (error) {
-        showError(error);
-    }
+    try { showResults(await request(`/categories/search?name=${encodeURIComponent(value("categorySearchInput"))}`)); }
+    catch (e) { showError(e); }
 }
-
 async function createCategory() {
     try {
-        const body = { name: value("newCategoryName") };
-        showResults(await request("/categories", {
-            method: "POST",
-            body: JSON.stringify(body)
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request("/categories", { method: "POST", body: JSON.stringify({ name: value("newCategoryName") }) }));
+        fillCategories("updateCategorySelect", "deleteCategorySelect");
+    } catch (e) { showError(e); }
 }
-
 async function updateCategory() {
     try {
-        const body = {
-            id: numberValue("updateCategoryId"),
-            name: value("updateCategoryName")
-        };
-
-        showResults(await request("/categories", {
-            method: "PUT",
-            body: JSON.stringify(body)
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request("/categories", { method: "PUT",
+            body: JSON.stringify({ id: numVal("updateCategorySelect"), name: value("updateCategoryName") }) }));
+        fillCategories("updateCategorySelect", "deleteCategorySelect");
+    } catch (e) { showError(e); }
 }
-
 async function deleteCategory() {
     try {
-        showResults(await request(`/categories/${value("deleteCategoryId")}`, {
-            method: "DELETE"
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request(`/categories/${value("deleteCategorySelect")}`, { method: "DELETE" }));
+        fillCategories("updateCategorySelect", "deleteCategorySelect");
+    } catch (e) { showError(e); }
 }
 
-/* =========================
-   INGREDIENTS
-========================= */
+// ── INGREDIENTS ──────────────────────────────────────────────────────────────
 
 async function getAllIngredients() {
-    try {
-        showResults(await request("/ingredients"));
-    } catch (error) {
-        showError(error);
-    }
+    try { showResults(await request("/ingredients")); }
+    catch (e) { showError(e); }
 }
-
-async function getIngredientById() {
-    try {
-        showResults(await request(`/ingredients/${value("ingredientIdInput")}`));
-    } catch (error) {
-        showError(error);
-    }
-}
-
 async function searchIngredients() {
-    try {
-        showResults(await request(`/ingredients/search?name=${encodeURIComponent(value("ingredientSearchInput"))}`));
-    } catch (error) {
-        showError(error);
-    }
+    try { showResults(await request(`/ingredients/search?name=${encodeURIComponent(value("ingredientSearchInput"))}`)); }
+    catch (e) { showError(e); }
 }
-
 async function getIngredientsByCategory() {
-    try {
-        showResults(await request(`/ingredients/category/${value("ingredientCategoryIdInput")}`));
-    } catch (error) {
-        showError(error);
-    }
+    try { showResults(await request(`/ingredients/category/${value("ingredientByCategorySelect")}`)); }
+    catch (e) { showError(e); }
 }
-
 async function createIngredient() {
     try {
-        const body = {
+        showResults(await request("/ingredients", { method: "POST", body: JSON.stringify({
             name: value("newIngredientName"),
-            category: { id: numberValue("newIngredientCategoryId") },
+            category: { id: numVal("newIngredientCategorySelect") },
             defaultUnit: value("newIngredientUnit")
-        };
-
-        showResults(await request("/ingredients", {
-            method: "POST",
-            body: JSON.stringify(body)
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        })}));
+        fillIngredients("updateIngredientSelect", "deleteIngredientSelect");
+    } catch (e) { showError(e); }
 }
-
 async function updateIngredient() {
     try {
-        const body = {
-            id: numberValue("updateIngredientId"),
+        showResults(await request("/ingredients", { method: "PUT", body: JSON.stringify({
+            id: numVal("updateIngredientSelect"),
             name: value("updateIngredientName"),
-            category: { id: numberValue("updateIngredientCategoryId") },
+            category: { id: numVal("updateIngredientCategorySelect") },
             defaultUnit: value("updateIngredientUnit")
-        };
-
-        showResults(await request("/ingredients", {
-            method: "PUT",
-            body: JSON.stringify(body)
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        })}));
+        fillIngredients("updateIngredientSelect", "deleteIngredientSelect");
+    } catch (e) { showError(e); }
 }
-
 async function deleteIngredient() {
     try {
-        showResults(await request(`/ingredients/${value("deleteIngredientId")}`, {
-            method: "DELETE"
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request(`/ingredients/${value("deleteIngredientSelect")}`, { method: "DELETE" }));
+        fillIngredients("updateIngredientSelect", "deleteIngredientSelect");
+    } catch (e) { showError(e); }
 }
 
-/* =========================
-   INVENTORY
-========================= */
+// ── INVENTORY ────────────────────────────────────────────────────────────────
 
 async function getAllInventory() {
-    try {
-        showResults(await request("/inventory"));
-    } catch (error) {
-        showError(error);
-    }
+    try { showResults(await request("/inventory")); }
+    catch (e) { showError(e); }
 }
-
-async function getInventoryById() {
-    try {
-        showResults(await request(`/inventory/${value("inventoryIdInput")}`));
-    } catch (error) {
-        showError(error);
-    }
-}
-
 async function getInventoryByLocation() {
-    try {
-        showResults(await request(`/inventory/location/${value("inventoryLocationIdInput")}`));
-    } catch (error) {
-        showError(error);
-    }
+    try { showResults(await request(`/inventory/location/${value("inventoryByLocationSelect")}`)); }
+    catch (e) { showError(e); }
 }
-
 async function getInventoryByIngredient() {
-    try {
-        showResults(await request(`/inventory/ingredient/${value("inventoryIngredientIdInput")}`));
-    } catch (error) {
-        showError(error);
-    }
+    try { showResults(await request(`/inventory/ingredient/${value("inventoryByIngredientSelect")}`)); }
+    catch (e) { showError(e); }
 }
-
 async function createInventory() {
     try {
-        const body = {
-            ingredient: { id: numberValue("newInventoryIngredientId") },
-            location: { id: numberValue("newInventoryLocationId") },
-            quantity: Number(value("newInventoryQuantity")),
-            unit: value("newInventoryUnit"),
-            expirationDate: optionalDateValue("newInventoryExpirationDate"),
-            note: value("newInventoryNote")
-        };
-
-        showResults(await request("/inventory", {
-            method: "POST",
-            body: JSON.stringify(body)
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request("/inventory", { method: "POST", body: JSON.stringify({
+            ingredient: { id: numVal("newInventoryIngredientSelect") },
+            location:   { id: numVal("newInventoryLocationSelect") },
+            quantity:   Number(value("newInventoryQuantity")),
+            unit:       value("newInventoryUnit"),
+            expirationDate: optDate("newInventoryExpirationDate"),
+            note:       value("newInventoryNote")
+        })}));
+        fillInventory("updateInventorySelect", "deleteInventorySelect");
+    } catch (e) { showError(e); }
 }
-
 async function updateInventory() {
     try {
-        const body = {
-            id: numberValue("updateInventoryId"),
-            ingredient: { id: numberValue("updateInventoryIngredientId") },
-            location: { id: numberValue("updateInventoryLocationId") },
-            quantity: Number(value("updateInventoryQuantity")),
-            unit: value("updateInventoryUnit"),
-            expirationDate: optionalDateValue("updateInventoryExpirationDate"),
-            note: value("updateInventoryNote")
-        };
-
-        showResults(await request("/inventory", {
-            method: "PUT",
-            body: JSON.stringify(body)
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request("/inventory", { method: "PUT", body: JSON.stringify({
+            id:         numVal("updateInventorySelect"),
+            ingredient: { id: numVal("updateInventoryIngredientSelect") },
+            location:   { id: numVal("updateInventoryLocationSelect") },
+            quantity:   Number(value("updateInventoryQuantity")),
+            unit:       value("updateInventoryUnit"),
+            expirationDate: optDate("updateInventoryExpirationDate"),
+            note:       value("updateInventoryNote")
+        })}));
+        fillInventory("updateInventorySelect", "deleteInventorySelect");
+    } catch (e) { showError(e); }
 }
-
 async function deleteInventory() {
     try {
-        showResults(await request(`/inventory/${value("deleteInventoryId")}`, {
-            method: "DELETE"
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request(`/inventory/${value("deleteInventorySelect")}`, { method: "DELETE" }));
+        fillInventory("updateInventorySelect", "deleteInventorySelect");
+    } catch (e) { showError(e); }
 }
 
-/* =========================
-   MEALS
-========================= */
+// ── MEALS ────────────────────────────────────────────────────────────────────
 
 async function getAllMeals() {
-    try {
-        showResults(await request("/meals"));
-    } catch (error) {
-        showError(error);
-    }
+    try { showResults(await request("/meals")); }
+    catch (e) { showError(e); }
 }
-
-async function getMealById() {
-    try {
-        showResults(await request(`/meals/${value("mealIdInput")}`));
-    } catch (error) {
-        showError(error);
-    }
-}
-
 async function searchMeals() {
-    try {
-        showResults(await request(`/meals/search?name=${encodeURIComponent(value("mealSearchInput"))}`));
-    } catch (error) {
-        showError(error);
-    }
+    try { showResults(await request(`/meals/search?name=${encodeURIComponent(value("mealSearchInput"))}`)); }
+    catch (e) { showError(e); }
 }
-
 async function createMeal() {
     try {
-        const body = { name: value("newMealName") };
-        showResults(await request("/meals", {
-            method: "POST",
-            body: JSON.stringify(body)
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request("/meals", { method: "POST", body: JSON.stringify({ name: value("newMealName") }) }));
+        fillMeals("updateMealSelect", "deleteMealSelect");
+    } catch (e) { showError(e); }
 }
-
 async function updateMeal() {
     try {
-        const body = {
-            id: numberValue("updateMealId"),
-            name: value("updateMealName")
-        };
-
-        showResults(await request("/meals", {
-            method: "PUT",
-            body: JSON.stringify(body)
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request("/meals", { method: "PUT",
+            body: JSON.stringify({ id: numVal("updateMealSelect"), name: value("updateMealName") }) }));
+        fillMeals("updateMealSelect", "deleteMealSelect");
+    } catch (e) { showError(e); }
 }
-
 async function deleteMeal() {
     try {
-        showResults(await request(`/meals/${value("deleteMealId")}`, {
-            method: "DELETE"
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request(`/meals/${value("deleteMealSelect")}`, { method: "DELETE" }));
+        fillMeals("updateMealSelect", "deleteMealSelect");
+    } catch (e) { showError(e); }
 }
 
-/* =========================
-   RECIPES
-========================= */
+// ── RECIPES ──────────────────────────────────────────────────────────────────
 
 async function getAllRecipes() {
-    try {
-        showResults(await request("/recipes"));
-    } catch (error) {
-        showError(error);
-    }
+    try { showResults(await request("/recipes")); }
+    catch (e) { showError(e); }
 }
-
-async function getRecipeById() {
-    try {
-        showResults(await request(`/recipes/${value("recipeIdInput")}`));
-    } catch (error) {
-        showError(error);
-    }
-}
-
 async function getRecipesByMeal() {
-    try {
-        showResults(await request(`/recipes/meal/${value("recipeMealIdInput")}`));
-    } catch (error) {
-        showError(error);
-    }
+    try { showResults(await request(`/recipes/meal/${value("recipeByMealSelect")}`)); }
+    catch (e) { showError(e); }
 }
-
 async function createRecipe() {
     try {
-        const body = {
-            meal: { id: numberValue("newRecipeMealId") },
-            servings: numberValue("newRecipeServings"),
+        showResults(await request("/recipes", { method: "POST", body: JSON.stringify({
+            meal:         { id: numVal("newRecipeMealSelect") },
+            servings:     numVal("newRecipeServings"),
             instructions: value("newRecipeInstructions")
-        };
-
-        showResults(await request("/recipes", {
-            method: "POST",
-            body: JSON.stringify(body)
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        })}));
+        fillRecipes("updateRecipeSelect", "deleteRecipeSelect");
+    } catch (e) { showError(e); }
 }
-
 async function updateRecipe() {
     try {
-        const body = {
-            id: numberValue("updateRecipeId"),
-            meal: { id: numberValue("updateRecipeMealId") },
-            servings: numberValue("updateRecipeServings"),
+        showResults(await request("/recipes", { method: "PUT", body: JSON.stringify({
+            id:           numVal("updateRecipeSelect"),
+            meal:         { id: numVal("updateRecipeMealSelect") },
+            servings:     numVal("updateRecipeServings"),
             instructions: value("updateRecipeInstructions")
-        };
-
-        showResults(await request("/recipes", {
-            method: "PUT",
-            body: JSON.stringify(body)
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        })}));
+        fillRecipes("updateRecipeSelect", "deleteRecipeSelect");
+    } catch (e) { showError(e); }
 }
-
 async function deleteRecipe() {
     try {
-        showResults(await request(`/recipes/${value("deleteRecipeId")}`, {
-            method: "DELETE"
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request(`/recipes/${value("deleteRecipeSelect")}`, { method: "DELETE" }));
+        fillRecipes("updateRecipeSelect", "deleteRecipeSelect");
+    } catch (e) { showError(e); }
 }
 
-/* =========================
-   PREPARED MEALS
-========================= */
+// ── PREPARED MEALS ───────────────────────────────────────────────────────────
 
 async function getAllPreparedMeals() {
-    try {
-        showResults(await request("/prepared-meals"));
-    } catch (error) {
-        showError(error);
-    }
+    try { showResults(await request("/prepared-meals")); }
+    catch (e) { showError(e); }
 }
-
-async function getPreparedMealById() {
-    try {
-        showResults(await request(`/prepared-meals/${value("preparedMealIdInput")}`));
-    } catch (error) {
-        showError(error);
-    }
-}
-
 async function getPreparedMealsByLocation() {
-    try {
-        showResults(await request(`/prepared-meals/location/${value("preparedMealLocationIdInput")}`));
-    } catch (error) {
-        showError(error);
-    }
+    try { showResults(await request(`/prepared-meals/location/${value("preparedMealByLocationSelect")}`)); }
+    catch (e) { showError(e); }
 }
-
 async function createPreparedMeal() {
     try {
-        const body = {
-            name: value("newPreparedMealName"),
-            location: { id: numberValue("newPreparedMealLocationId") },
-            servingsTotal: numberValue("newPreparedMealServingsTotal"),
-            servingsRemaining: numberValue("newPreparedMealServingsRemaining"),
-            prepDate: value("newPreparedMealPrepDate"),
-            expirationDate: optionalDateValue("newPreparedMealExpirationDate"),
-            note: value("newPreparedMealNote")
-        };
-
-        showResults(await request("/prepared-meals", {
-            method: "POST",
-            body: JSON.stringify(body)
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request("/prepared-meals", { method: "POST", body: JSON.stringify({
+            name:              value("newPreparedMealName"),
+            location:          { id: numVal("newPreparedMealLocationSelect") },
+            servingsTotal:     numVal("newPreparedMealServingsTotal"),
+            servingsRemaining: numVal("newPreparedMealServingsRemaining"),
+            prepDate:          value("newPreparedMealPrepDate"),
+            expirationDate:    optDate("newPreparedMealExpirationDate"),
+            note:              value("newPreparedMealNote")
+        })}));
+        fillPreparedMeals("updatePreparedMealSelect", "deletePreparedMealSelect");
+    } catch (e) { showError(e); }
 }
-
 async function updatePreparedMeal() {
     try {
-        const body = {
-            id: numberValue("updatePreparedMealId"),
-            name: value("updatePreparedMealName"),
-            location: { id: numberValue("updatePreparedMealLocationId") },
-            servingsTotal: numberValue("updatePreparedMealServingsTotal"),
-            servingsRemaining: numberValue("updatePreparedMealServingsRemaining"),
-            prepDate: value("updatePreparedMealPrepDate"),
-            expirationDate: optionalDateValue("updatePreparedMealExpirationDate"),
-            note: value("updatePreparedMealNote")
-        };
-
-        showResults(await request("/prepared-meals", {
-            method: "PUT",
-            body: JSON.stringify(body)
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request("/prepared-meals", { method: "PUT", body: JSON.stringify({
+            id:                numVal("updatePreparedMealSelect"),
+            name:              value("updatePreparedMealName"),
+            location:          { id: numVal("updatePreparedMealLocationSelect") },
+            servingsTotal:     numVal("updatePreparedMealServingsTotal"),
+            servingsRemaining: numVal("updatePreparedMealServingsRemaining"),
+            prepDate:          value("updatePreparedMealPrepDate"),
+            expirationDate:    optDate("updatePreparedMealExpirationDate"),
+            note:              value("updatePreparedMealNote")
+        })}));
+        fillPreparedMeals("updatePreparedMealSelect", "deletePreparedMealSelect");
+    } catch (e) { showError(e); }
 }
-
 async function deletePreparedMeal() {
     try {
-        showResults(await request(`/prepared-meals/${value("deletePreparedMealId")}`, {
-            method: "DELETE"
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request(`/prepared-meals/${value("deletePreparedMealSelect")}`, { method: "DELETE" }));
+        fillPreparedMeals("updatePreparedMealSelect", "deletePreparedMealSelect");
+    } catch (e) { showError(e); }
 }
 
-/* =========================
-   RECIPE INGREDIENTS
-========================= */
+// ── RECIPE INGREDIENTS ───────────────────────────────────────────────────────
 
 async function getAllRecipeIngredients() {
-    try {
-        showResults(await request("/recipe-ingredients"));
-    } catch (error) {
-        showError(error);
-    }
+    try { showResults(await request("/recipe-ingredients")); }
+    catch (e) { showError(e); }
 }
-
 async function getRecipeIngredientsByRecipe() {
-    try {
-        showResults(await request(`/recipe-ingredients/recipe/${value("recipeIngredientRecipeIdInput")}`));
-    } catch (error) {
-        showError(error);
-    }
+    try { showResults(await request(`/recipe-ingredients/recipe/${value("riByRecipeSelect")}`)); }
+    catch (e) { showError(e); }
 }
-
 async function getRecipeIngredientsByIngredient() {
-    try {
-        showResults(await request(`/recipe-ingredients/ingredient/${value("recipeIngredientIngredientIdInput")}`));
-    } catch (error) {
-        showError(error);
-    }
+    try { showResults(await request(`/recipe-ingredients/ingredient/${value("riByIngredientSelect")}`)); }
+    catch (e) { showError(e); }
 }
-
-async function getRecipeIngredientByIds() {
-    try {
-        showResults(await request(`/recipe-ingredients/recipe/${value("recipeIngredientRecipeIdSingle")}/ingredient/${value("recipeIngredientIngredientIdSingle")}`));
-    } catch (error) {
-        showError(error);
-    }
-}
-
 async function createRecipeIngredient() {
     try {
-        const body = {
-            recipe: { id: numberValue("newRecipeIngredientRecipeId") },
-            ingredient: { id: numberValue("newRecipeIngredientIngredientId") },
-            amount: Number(value("newRecipeIngredientAmount")),
-            unit: value("newRecipeIngredientUnit")
-        };
-
-        showResults(await request("/recipe-ingredients", {
-            method: "POST",
-            body: JSON.stringify(body)
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request("/recipe-ingredients", { method: "POST", body: JSON.stringify({
+            recipe:     { id: numVal("newRiRecipeSelect") },
+            ingredient: { id: numVal("newRiIngredientSelect") },
+            amount:     Number(value("newRecipeIngredientAmount")),
+            unit:       value("newRecipeIngredientUnit")
+        })}));
+        fillRecipeIngredients("updateRiSelect", "deleteRiSelect");
+    } catch (e) { showError(e); }
 }
-
 async function updateRecipeIngredient() {
+    const compound = value("updateRiSelect");
+    const [recipeId, ingredientId] = compound.split("_").map(Number);
     try {
-        const body = {
-            recipe: { id: numberValue("updateRecipeIngredientRecipeId") },
-            ingredient: { id: numberValue("updateRecipeIngredientIngredientId") },
-            amount: Number(value("updateRecipeIngredientAmount")),
-            unit: value("updateRecipeIngredientUnit")
-        };
-
-        showResults(await request("/recipe-ingredients", {
-            method: "PUT",
-            body: JSON.stringify(body)
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request("/recipe-ingredients", { method: "PUT", body: JSON.stringify({
+            recipe:     { id: recipeId },
+            ingredient: { id: ingredientId },
+            amount:     Number(value("updateRecipeIngredientAmount")),
+            unit:       value("updateRecipeIngredientUnit")
+        })}));
+        fillRecipeIngredients("updateRiSelect", "deleteRiSelect");
+    } catch (e) { showError(e); }
 }
-
 async function deleteRecipeIngredient() {
+    const compound = value("deleteRiSelect");
+    const [recipeId, ingredientId] = compound.split("_").map(Number);
     try {
-        showResults(await request(`/recipe-ingredients/recipe/${value("deleteRecipeIngredientRecipeId")}/ingredient/${value("deleteRecipeIngredientIngredientId")}`, {
-            method: "DELETE"
-        }));
-    } catch (error) {
-        showError(error);
-    }
+        showResults(await request(
+            `/recipe-ingredients/recipe/${recipeId}/ingredient/${ingredientId}`,
+            { method: "DELETE" }
+        ));
+        fillRecipeIngredients("updateRiSelect", "deleteRiSelect");
+    } catch (e) { showError(e); }
 }
+
+// ── Bootstrap ────────────────────────────────────────────────────────────────
+window.addEventListener("load", () => refreshSectionSelects("locations"));

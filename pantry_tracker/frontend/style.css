@@ -103,6 +103,26 @@ input {
     border-radius: 8px;
     min-width: 180px;
     background: #f8fafc;
+    font-family: Arial, sans-serif;
+    font-size: 0.95rem;
+    color: #1f2937;
+}
+
+select {
+    padding: 0.65rem 0.75rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    min-width: 200px;
+    background: #f8fafc;
+    font-family: Arial, sans-serif;
+    font-size: 0.95rem;
+    color: #1f2937;
+    cursor: pointer;
+}
+
+select:focus, input:focus {
+    outline: 2px solid #2563eb;
+    outline-offset: 1px;
 }
 
 button {
@@ -112,6 +132,8 @@ button {
     background: #1d4ed8;
     color: white;
     cursor: pointer;
+    font-family: Arial, sans-serif;
+    font-size: 0.95rem;
 }
 
 button:hover {
@@ -122,12 +144,97 @@ button:hover {
     display: block;
 }
 
-.results-panel pre {
-    background: #0f172a;
-    color: #e2e8f0;
-    padding: 1rem;
-    border-radius: 10px;
-    overflow-x: auto;
-    white-space: pre-wrap;
-    min-height: 240px;
+#results {
+    min-height: 120px;
+    padding: 0.25rem 0;
+}
+
+.result-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.result-table thead th {
+    background: #f1f5f9;
+    color: #475569;
+    font-weight: 600;
+    padding: 0.6rem 1rem;
+    text-align: left;
+    border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap;
+}
+
+.result-table tbody td {
+    padding: 0.6rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1f2937;
+}
+
+.result-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.result-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+.result-detail {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+}
+
+.result-detail th {
+    width: 200px;
+    background: #f8fafc;
+    color: #64748b;
+    font-weight: 600;
+    padding: 0.55rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #f1f5f9;
+    white-space: nowrap;
+}
+
+.result-detail td {
+    padding: 0.55rem 1rem;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1f2937;
+}
+
+.result-detail tr:last-child th,
+.result-detail tr:last-child td {
+    border-bottom: none;
+}
+
+.result-success {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #166534;
+    background: #dcfce7;
+    border: 1px solid #bbf7d0;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.result-error {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #991b1b;
+    background: #fee2e2;
+    border: 1px solid #fecaca;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.result-empty {
+    color: #94a3b8;
+    text-align: center;
+    padding: 2.5rem 1rem;
+    margin: 0;
+    font-size: 0.95rem;
 }
